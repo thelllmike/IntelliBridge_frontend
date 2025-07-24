@@ -1,10 +1,11 @@
+// src/component/uploadCV/Index.jsx
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import config from "../../config/index";
 import { Toast } from "primereact/toast";
 import "./style.css";
 
-export default function Index() {
+export default function UploadCV() {
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const [fileName, setFileName] = useState("");
@@ -22,10 +23,6 @@ export default function Index() {
 
   const triggerFileInput = () => {
     fileInputRef.current.click();
-  };
-
-  const clickDontHaveCv = () => {
-    navigate("/dont-have-cv");
   };
 
   const handleContinue = async () => {
@@ -59,8 +56,10 @@ export default function Index() {
       const responseData = await response.json();
       const cvData = responseData.data;
       setLoading(false);
-      navigate("/personality-trait", {
-        state: { responseData: cvData },
+
+      // Navigate to the Job Description step
+      navigate("/job-description", {
+        state: { cvData },
       });
     } catch (error) {
       toast.current?.show({
@@ -83,7 +82,7 @@ export default function Index() {
             <div className="uploadCvHeader">
               <span>
                 Upload your resume here and find which one is the right fit for
-                you{" "}
+                you
               </span>
             </div>
             <div className="uploadInput" onClick={triggerFileInput}>
@@ -96,10 +95,7 @@ export default function Index() {
               />
               <div className="uploadInputText">
                 <span>
-                  <span className="uploadText" onChange={handleFileChange}>
-                    Upload
-                  </span>{" "}
-                  or Drop your CV here
+                  <span className="uploadText">Upload</span> or Drop your CV here
                 </span>
               </div>
               <div className="formatType">
@@ -111,43 +107,34 @@ export default function Index() {
             </div>
             <div className="continueButton">
               <span onClick={handleContinue}>
-                {" "}
                 {loading ? "Uploading..." : "Continue"}
               </span>
             </div>
-            {/* <div className="dontHaveCv">
-              <span>
-                <span className="dontHaveCvText" onClick={clickDontHaveCv}>
-                  Don't have a CV?
-                </span>
-                No problem!
-              </span>
-            </div> */}
           </div>
         </div>
         <div className="uploadCvRight">
-          <div class="stepper-container">
-            <div class="step active">
-              <div class="step-number">1</div>
-              <div class="step-label">
+          <div className="stepper-container">
+            <div className="step active">
+              <div className="step-number">1</div>
+              <div className="step-label">
                 <strong>Upload CV</strong>
               </div>
             </div>
-            <div class="step">
-              <div class="step-number">2</div>
-              <div class="step-label">Job Description</div>
+            <div className="step">
+              <div className="step-number">2</div>
+              <div className="step-label">Job Description</div>
             </div>
-            <div class="step">
-              <div class="step-number">3</div>
-              <div class="step-label">Quiz Generation</div>
+            <div className="step">
+              <div className="step-number">3</div>
+              <div className="step-label">Quiz Generation</div>
             </div>
-            <div class="step">
-              <div class="step-number">4</div>
-              <div class="step-label">Skill Analize</div>
+            <div className="step">
+              <div className="step-number">4</div>
+              <div className="step-label">Skill Analyze</div>
             </div>
-            <div class="step">
-              <div class="step-number">5</div>
-              <div class="step-label">Result</div>
+            <div className="step">
+              <div className="step-number">5</div>
+              <div className="step-label">Result</div>
             </div>
           </div>
         </div>

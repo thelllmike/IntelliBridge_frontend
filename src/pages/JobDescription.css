@@ -1,0 +1,22 @@
+/* Make sure html/body/root are full‐height in your global CSS:
+   html, body, #root { height: 100%; margin: 0; } */
+
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;        /* fill viewport */
+  overflow: hidden;     /* prevent overall page scroll */
+}
+
+.pageHeader {
+  flex: 0 0 auto;       /* only as tall as NavBar */
+}
+
+.pageContent {
+  flex: 1 1 auto;       /* take all remaining space */
+  overflow-y: auto;     /* scroll inside here if needed */
+}
+
+.pageFooter {
+  flex: 0 0 auto;       /* only as tall as Footer */
+}
