@@ -44,9 +44,9 @@ export default function Index() {
       }
 
       const formDataToSend = new FormData();
-      formDataToSend.append("cv", cvFile);
+      formDataToSend.append("file", cvFile);
 
-      const response = await fetch(`${config.API_URL}/api/parse-cv`, {
+      const response = await fetch(`${config.API_URL}/upload-pdf/`, {
         method: "POST",
         body: formDataToSend,
       });
