@@ -28,16 +28,25 @@ export default function Index() {
 
     setLoading(true);
     try {
-      const formData = new FormData();
-      formData.append("job_description", jobDescription);
+      // const formData = new FormData();
+      // formData.append("job_description", jobDescription);
 
-      const res = await fetch(
-        `${config.API_URL}/submit-job-description/`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      // const res = await fetch(
+      //   `${config.API_URL}/analyze-jd/`,
+      //   {
+      //     method: "POST",
+      //     body: formData,
+      //   }
+      // );
+       const payload = { text: jobDescription };
+
+ const res = await fetch(`${config.API_URL}/analyze-jd/`, {
+   method: "POST",
+   headers: {
+     "Content-Type": "application/json"
+  },
+   body: JSON.stringify(payload),
+ });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.detail || "Failed to submit description");
