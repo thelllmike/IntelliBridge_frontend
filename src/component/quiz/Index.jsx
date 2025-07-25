@@ -85,7 +85,7 @@ const questions = [
             };
           }
         );
-        navigate("/result", {
+        navigate("/test-result", {
           state: { results: finalResults, responseData: cvResultData },
         });
       }

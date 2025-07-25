@@ -1,10 +1,10 @@
 import React from "react";
 import NavBar from "../component/navBar/NavBar";
-import Quiz from "../component/quiz/Index";
+import Result from "../component/personalityResult/Index";
 import Footer from "../component/footer/Footer";
 import "./DataExtractionPage.css";  // reuse the flex layout CSS
 
-export default function PersonalityTraitsQuestionPage() {
+export default function ResultPage() {
   return (
     <div className="pageContainer">
       <header className="pageHeader">
@@ -12,7 +12,7 @@ export default function PersonalityTraitsQuestionPage() {
       </header>
 
       <main className="pageContent">
-        <Quiz />
+        <Result />
       </main>
 
       <footer className="pageFooter">
