@@ -53,7 +53,7 @@ export default function Index() {
       }
 
       // on success, go to your next page
-      navigate("/test-api", {
+      navigate("/quiz", {
         state: { jobDescription },
       });
     } catch (err) {

@@ -4,7 +4,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // Import your pages
 import DataExtractionPage from "./pages/DataExtractionPage";
-import JobDescriptionPage  from "./pages/JobDescription";  // adjust if filename is Index.jsx
+import JobDescriptionPage  from "./pages/JobDescription"; 
+import Quiz  from "./pages/Quiz";  // adjust if filename is Index.jsx
 
 export default function App() {
   return (
@@ -15,6 +16,8 @@ export default function App() {
 
         {/* Direct route to the Job Description page */}
         <Route path="/job-description" element={<JobDescriptionPage />} />
+        {/* Direct route to the Quiz page */}
+        <Route path="/quiz" element={<Quiz />} />
 
         {/* Add more <Route> entries here as your app grows */}
       </Routes>
