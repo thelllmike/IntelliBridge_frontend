@@ -7,13 +7,15 @@ import DataExtractionPage from "./pages/DataExtractionPage";
 import JobDescriptionPage  from "./pages/JobDescription"; 
 import Quiz  from "./pages/Quiz"; 
 import ResultPage from "./pages/ResultPage"; // adjust if filename is Index.jsx
+import LandingPage from "./pages/LandingPage";
 
 export default function App() {
   return (
     <Router>
       <Routes>
+          <Route path="/" element={<LandingPage />} />
         {/* “/” is your landing page with CV upload & JD stepper */}
-        <Route path="/" element={<DataExtractionPage />} />
+        <Route path="/cv" element={<DataExtractionPage />} />
 
         {/* Direct route to the Job Description page */}
         <Route path="/job-description" element={<JobDescriptionPage />} />

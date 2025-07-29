@@ -1,4 +1,5 @@
 // src/component/uploadCV/Index.jsx
+
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import config from "../../config/index";
@@ -7,12 +8,19 @@ import "./style.css";
 
 export default function UploadCV() {
   const fileInputRef = useRef(null);
-  const navigate = useNavigate();
-  const [fileName, setFileName] = useState("");
-  const [cvFile, setCvFile] = useState(null);
-  const toast = useRef(null);
-  const [loading, setLoading] = useState(false);
+  const toast        = useRef(null);
+  const navigate     = useNavigate();
 
+  const [fileName, setFileName] = useState("");
+  const [cvFile, setCvFile]     = useState(null);
+  const [loading, setLoading]   = useState(false);
+
+  // 1) Trigger file picker
+  const triggerFileInput = () => {
+    fileInputRef.current.click();
+  };
+
+  // 2) Store selected file
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -21,31 +29,39 @@ export default function UploadCV() {
     }
   };
 
-  const triggerFileInput = () => {
-    fileInputRef.current.click();
-  };
-
+  // 3) Upload + include user_id
   const handleContinue = async () => {
+    if (!cvFile) {
+      toast.current?.show({
+        severity: "warn",
+        summary:  "File Required",
+        detail:   "Please select a CV file before continuing",
+        life:     5000,
+      });
+      return;
+    }
+
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      toast.current?.show({
+        severity: "error",
+        summary:  "Not Logged In",
+        detail:   "Please login before uploading your CV",
+        life:     5000,
+      });
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      setLoading(true);
-
-      if (!cvFile) {
-        toast.current?.show({
-          severity: "warn",
-          summary: "File Required",
-          detail: "Please select a CV file before continuing",
-          life: 5000,
-        });
-        setLoading(false);
-        return;
-      }
-
       const formDataToSend = new FormData();
-      formDataToSend.append("file", cvFile);
+      formDataToSend.append("file",    cvFile);
+      formDataToSend.append("user_id", userId);
 
       const response = await fetch(`${config.API_URL}/upload-pdf/`, {
         method: "POST",
-        body: formDataToSend,
+        body:   formDataToSend,
       });
 
       if (!response.ok) {
@@ -54,21 +70,27 @@ export default function UploadCV() {
       }
 
       const responseData = await response.json();
-      const cvData = responseData.data;
-      setLoading(false);
+      // responseData.id is the MongoDB record ID for this CV
+      const cvRecordId   = responseData.id;
 
-      // Navigate to the Job Description step
+      // Navigate to Job Description step, passing along what you need
       navigate("/job-description", {
-        state: { cvData },
+        state: { 
+          userId, 
+          cvRecordId, 
+          txtFile: responseData.txt_file, 
+          skillData: responseData.skill_extraction 
+        },
       });
     } catch (error) {
       toast.current?.show({
         severity: "error",
-        summary: "Upload Error",
-        detail: error.message,
-        life: 5000,
+        summary:  "Upload Error",
+        detail:   error.message,
+        life:     5000,
       });
-      console.error("Error uploading CV:", error.message);
+      console.error("Error uploading CV:", error);
+    } finally {
       setLoading(false);
     }
   };

@@ -1,15 +1,16 @@
 // src/component/jobDescription/Index.jsx
+
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import config from "../../config/index";
 import { Toast } from "primereact/toast";
 import "./style.css";
 
-export default function Index() {
+export default function JobDescription() {
   const [jobDescription, setJobDescription] = useState("");
-  const [loading, setLoading] = useState(false);
-  const toast = useRef(null);
-  const navigate = useNavigate();
+  const [loading, setLoading]               = useState(false);
+  const toast                                = useRef(null);
+  const navigate                             = useNavigate();
 
   const handleDescriptionChange = (e) => {
     setJobDescription(e.target.value);
@@ -19,50 +20,58 @@ export default function Index() {
     if (!jobDescription.trim()) {
       toast.current?.show({
         severity: "warn",
-        summary: "Description Required",
-        detail: "Please paste the job description before continuing",
-        life: 5000,
+        summary:  "Description Required",
+        detail:   "Please paste the job description before continuing",
+        life:     5000,
+      });
+      return;
+    }
+
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      toast.current?.show({
+        severity: "error",
+        summary:  "Not Logged In",
+        detail:   "Please login before submitting a job description",
+        life:     5000,
       });
       return;
     }
 
     setLoading(true);
     try {
-      // const formData = new FormData();
-      // formData.append("job_description", jobDescription);
+      const payload = {
+        user_id: userId,
+        text:    jobDescription,
+      };
 
-      // const res = await fetch(
-      //   `${config.API_URL}/analyze-jd/`,
-      //   {
-      //     method: "POST",
-      //     body: formData,
-      //   }
-      // );
-       const payload = { text: jobDescription };
+      const res = await fetch(`${config.API_URL}/analyze-jd/`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify(payload),
+      });
 
- const res = await fetch(`${config.API_URL}/analyze-jd/`, {
-   method: "POST",
-   headers: {
-     "Content-Type": "application/json"
-  },
-   body: JSON.stringify(payload),
- });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.detail || "Failed to submit description");
       }
 
-      // on success, go to your next page
+      const responseData = await res.json();
+      const jdId         = responseData.id;
+      const entities     = responseData.entities;
+
+      // Navigate to Quiz step, passing along userId, jdId, and entities
       navigate("/quiz", {
-        state: { jobDescription },
+        state: { userId, jdId, entities },
       });
     } catch (err) {
       toast.current?.show({
         severity: "error",
-        summary: "Submission Error",
-        detail: err.message,
-        life: 5000,
+        summary:  "Submission Error",
+        detail:   err.message,
+        life:     5000,
       });
+      console.error("Error submitting JD:", err);
     } finally {
       setLoading(false);
     }
