@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// src/pages/QuizPage.jsx
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Tips from "../../assets/images/bulbe.png";
 import { ProgressBar } from "primereact/progressbar";
@@ -6,6 +7,7 @@ import { RadioButton } from "primereact/radiobutton";
 import "./style.css";
 
 export default function Index() {
+  const [questions, setQuestions] = useState([]);
   const [selectedOption, setSelectedOption] = useState("");
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -13,87 +15,70 @@ export default function Index() {
   const location = useLocation();
   const cvResultData = location.state?.responseData || [];
 
-  // in your Quiz component file (e.g. src/pages/Quiz.jsx)
-
-const questions = [
-  {
-    id: 1,
-    text: "I feel confident using React hooks (useState, useEffect) to manage component state and side‑effects.",
-    trait: "React Hooks",
-    description:
-      "Measures your comfort level with React’s built‑in hooks for state and lifecycle management.",
-  },
-  {
-    id: 2,
-    text: "I understand how to optimize React component performance using techniques like React.memo, useCallback, and code‑splitting.",
-    trait: "Performance Optimization",
-    description:
-      "Assesses your knowledge of performance tuning in React apps.",
-  },
-  {
-    id: 3,
-    text: "I can manage global state effectively using Context API or libraries like Redux or Zustand.",
-    trait: "State Management",
-    description:
-      "Checks your familiarity with patterns for sharing state across many React components.",
-  },
-];
-
-
-  const options = [
-    { value: "01", label: "Strongly Disagree", color: "#640cb6", score: "1" },
-    { value: "02", label: "Disagree", color: "#6b7280", score: "2" },
-    { value: "03", label: "Neutral", color: "#6b7280", score: "3" },
-    { value: "04", label: "Agree", color: "#6b7280", score: "4" },
-    { value: "05", label: "Strongly agree", color: "#6b7280", score: "5" },
-  ];
+  // 1) Fetch the quiz questions on mount
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/quiz/6887a3efb912b91be6e1657a")
+      .then((r) => r.json())
+      .then((data) => setQuestions(data))
+      .catch((err) => console.error("Failed to load quiz:", err));
+  }, []);
 
   const handleOptionChange = (value) => {
     setSelectedOption(value);
   };
 
   const handleNextQuestion = () => {
-    if (selectedOption) {
-      const selectedOptionObj = options.find(
-        (opt) => opt.value === selectedOption
-      );
-      const updatedAnswers = {
+    if (!selectedOption) return;
+    const q = questions[currentQuestion];
+    // record this answer
+    setAnswers((a) => ({
+      ...a,
+      [q.id]: selectedOption
+    }));
+
+    if (currentQuestion < questions.length - 1) {
+      // move forward
+      const nextId = questions[currentQuestion + 1].id;
+      setCurrentQuestion((i) => i + 1);
+      setSelectedOption(answers[nextId] || "");
+    } else {
+      // last question → submit all answers
+      const payload = Object.entries({
         ...answers,
-        [questions[currentQuestion].id]: {
-          score: parseInt(selectedOptionObj.score),
-          trait: questions[currentQuestion].trait,
-        },
-      };
+        [q.id]: selectedOption
+      }).map(([question_id, answer]) => ({
+        question_id: Number(question_id),
+        answer
+      }));
 
-      setAnswers(updatedAnswers);
-
-      if (currentQuestion < questions.length - 1) {
-        setCurrentQuestion(currentQuestion + 1);
-        setSelectedOption("");
-      } else {
-        const traitScores = {};
-        Object.values(updatedAnswers).forEach(({ score, trait }) => {
-          traitScores[trait] = (traitScores[trait] || 0) + score;
+      fetch("http://127.0.0.1:8000/quiz/6887a3efb912b91be6e1657a", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        })
+        .then((resultData) => {
+          navigate("/test-result", {
+            state: { resultData, responseData: cvResultData }
+          });
+        })
+        .catch((err) => {
+          console.error("Submission failed:", err);
+          alert("Failed to submit quiz. Please try again.");
         });
-
-        const finalResults = Object.entries(traitScores).map(
-          ([trait, score]) => {
-            const percentage = (score / 15) * 100;
-            return {
-              trait,
-              score: Math.round(percentage),
-            };
-          }
-        );
-        navigate("/test-result", {
-          state: { results: finalResults, responseData: cvResultData },
-        });
-      }
     }
   };
 
-  const progressValue = ((currentQuestion + 1) / questions.length) * 100;
+  if (!questions.length) {
+    return <div className="quiz-loading">Loading quiz…</div>;
+  }
+
   const currentQuestionData = questions[currentQuestion];
+  const progressValue =
+    ((currentQuestion + 1) / questions.length) * 100;
 
   return (
     <div>
@@ -107,11 +92,11 @@ const questions = [
               <div className="tipsText">
                 <span>
                   <img src={Tips} alt="tips" className="tips" />
-                  &nbsp;&nbsp;Quiz  {currentQuestionData.trait}
+                  &nbsp;&nbsp;Quiz  {currentQuestionData.skill}
                 </span>
               </div>
               <div className="tipsDescription">
-                <span>{currentQuestionData.description}</span>
+                <span>{currentQuestionData.question}</span>
               </div>
             </div>
             <div className="questionIdentify">
@@ -132,36 +117,44 @@ const questions = [
                 <div className="question-header">
                   <div className="question-text">
                     <span>
-                      {currentQuestionData.id}. {currentQuestionData.text}
+                      {currentQuestionData.id}.{" "}
+                      {currentQuestionData.question}
                     </span>
                   </div>
                 </div>
 
                 <div className="options-container">
-                  {options.map((option) => (
+                  {currentQuestionData.options.map((option) => (
                     <div
-                      key={option.value}
+                      key={option}
                       className={`option-item ${
-                        selectedOption === option.value ? "selected" : ""
+                        selectedOption === option ? "selected" : ""
                       }`}
-                      onClick={() => handleOptionChange(option.value)}
+                      onClick={() =>
+                        handleOptionChange(option)
+                      }
                     >
-                      <div className="option-number">{option.value}</div>
-                      <div className="option-label">{option.label}</div>
+                      <div className="option-number"></div>
+                      <div className="option-label">{option}</div>
                       <div className="radio-button-wrapper">
                         <RadioButton
-                          inputId={option.value}
+                          inputId={option}
                           name="survey"
-                          value={option.value}
-                          onChange={(e) => handleOptionChange(e.value)}
-                          checked={selectedOption === option.value}
+                          value={option}
+                          onChange={(e) =>
+                            handleOptionChange(e.value)
+                          }
+                          checked={selectedOption === option}
                         />
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="nextQuestionButton" onClick={handleNextQuestion}>
+              <div
+                className="nextQuestionButton"
+                onClick={handleNextQuestion}
+              >
                 <span>
                   {currentQuestion === questions.length - 1
                     ? "Finish Test"
@@ -172,28 +165,30 @@ const questions = [
             </div>
           </div>
           <div className="personalityTraitsQuestionContenetRight">
-            <div class="stepper-container">
-              <div class="step active">
-                <div class="step-number">1</div>
-                <div class="step-label">
-                  <strong style={{ color: "#9B9BA0" }}>Upload CV</strong>
+            <div className="stepper-container">
+              <div className="step active">
+                <div className="step-number">1</div>
+                <div className="step-label">
+                  <strong style={{ color: "#9B9BA0" }}>
+                    Upload CV
+                  </strong>
                 </div>
               </div>
-              <div class="step active">
-                <div class="step-number">2</div>
-                <div class="step-label">Job Description</div>
+              <div className="step active">
+                <div className="step-number">2</div>
+                <div className="step-label">Job Description</div>
               </div>
-              <div class="step active">
-                <div class="step-number">3</div>
-                <div class="step-label">Quiz Generation</div>
+              <div className="step active">
+                <div className="step-number">3</div>
+                <div className="step-label">Quiz Generation</div>
               </div>
-              <div class="step">
-                <div class="step-number">4</div>
-                <div class="step-label">Skill Analyze</div>
+              <div className="step">
+                <div className="step-number">4</div>
+                <div className="step-label">Skill Analyze</div>
               </div>
-              <div class="step">
-                <div class="step-number">5</div>
-                <div class="step-label">Result</div>
+              <div className="step">
+                <div className="step-number">5</div>
+                <div className="step-label">Result</div>
               </div>
             </div>
           </div>
