@@ -8,7 +8,7 @@ import JobDescriptionPage  from "./pages/JobDescription";
 import Quiz  from "./pages/Quiz"; 
 import ResultPage from "./pages/ResultPage"; // adjust if filename is Index.jsx
 import LandingPage from "./pages/LandingPage";
-
+import ResultPageFinal from "./pages/Result";
 export default function App() {
   return (
     <Router>
@@ -24,6 +24,10 @@ export default function App() {
          <Route
             path="/test-result"
             element={<ResultPage />}
+          />
+              <Route
+            path="/result"
+            element={<ResultPageFinal />}
           />
 
         {/* Add more <Route> entries here as your app grows */}

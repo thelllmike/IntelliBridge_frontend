@@ -1,10 +1,14 @@
 // src/pages/QuizPage.jsx
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Tips from "../../assets/images/bulbe.png";
 import { ProgressBar } from "primereact/progressbar";
 import { RadioButton } from "primereact/radiobutton";
 import "./style.css";
+
+// Module-level global to store the quiz result
+export let quizResultGlobal = null;
 
 export default function Index() {
   const [questions, setQuestions] = useState([]);
@@ -30,6 +34,7 @@ export default function Index() {
   const handleNextQuestion = () => {
     if (!selectedOption) return;
     const q = questions[currentQuestion];
+
     // record this answer
     setAnswers((a) => ({
       ...a,
@@ -61,6 +66,9 @@ export default function Index() {
           return r.json();
         })
         .then((resultData) => {
+          // store globally
+          quizResultGlobal = resultData;
+          // navigate with the response if you still need it in the next page
           navigate("/test-result", {
             state: { resultData, responseData: cvResultData }
           });
@@ -92,7 +100,7 @@ export default function Index() {
               <div className="tipsText">
                 <span>
                   <img src={Tips} alt="tips" className="tips" />
-                  &nbsp;&nbsp;Quiz  {currentQuestionData.skill}
+                  &nbsp;&nbsp;Quiz {currentQuestionData.skill}
                 </span>
               </div>
               <div className="tipsDescription">
@@ -117,7 +125,7 @@ export default function Index() {
                 <div className="question-header">
                   <div className="question-text">
                     <span>
-                      {currentQuestionData.id}.{" "}
+                      {currentQuestionData.id}. 
                       {currentQuestionData.question}
                     </span>
                   </div>
@@ -130,9 +138,7 @@ export default function Index() {
                       className={`option-item ${
                         selectedOption === option ? "selected" : ""
                       }`}
-                      onClick={() =>
-                        handleOptionChange(option)
-                      }
+                      onClick={() => handleOptionChange(option)}
                     >
                       <div className="option-number"></div>
                       <div className="option-label">{option}</div>
@@ -158,8 +164,7 @@ export default function Index() {
                 <span>
                   {currentQuestion === questions.length - 1
                     ? "Finish Test"
-                    : "Next Question"}{" "}
-                  &gt;
+                    : "Next Question"} &gt;
                 </span>
               </div>
             </div>
